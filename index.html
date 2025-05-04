@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bank Letter Generator</title>
+  <!-- FileSaver.js for downloading files -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <!-- docx.js for generating DOCX files -->
+  <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
+  <!-- html2pdf.js for generating PDF files -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- Bootstrap 5.3.0 for styling and layout -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="icon" href="boi.jpg" type="image/x-icon">
+
+  <style>
+    /* Body styling to match Word document appearance */
+    body {
+      font-family: "Times New Roman", Times, serif;
+      background: #f8f9fa;
+    }
+    /* Preview container styled as A4 page */
+    .preview-container {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 10px auto;
+      padding: 20mm;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    /* Form section styling */
+    .form-section {
+      background: white;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    /* Preview area for letter content */
+    #letterPreview {
+      height: 100%;
+      overflow: auto;
+    }
+    /* Signature line styling */
+    .signature-line {
+      border-top: 1px solid black;
+      width: 60mm;
+      margin: 4mm 0;
+    }
+    /* Letterhead image styling */
+    .letterhead {
+      max-width: 100%;
+      height: 20mm;
+      display: block;
+      margin: 0 auto 10mm auto;
+    }
+    /* Text alignment and style classes */
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    .text-bold { font-weight: bold; }
+    .text-underline { text-decoration: underline; }
+    /* Generate button margin */
+    .btn-generate {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body class="p-4">
+  <div class="container">
+    <!-- Page title -->
+    <h3 class="mb-4 text-center">Bank Letter Generator</h3>
+
+    <!-- Form section for user inputs -->
+    <div class="form-section">
+      <!-- Row for Full Name and Company Name -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Full Name:</label>
+          <input type="text" id="fullName" class="form-control" placeholder="Mohammed Algoni">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Company Name:</label>
+          <input type="text" id="company" class="form-control" placeholder="ABBA BAMA GLOBAL TRADING VENTURES">
+        </div>
+      </div>
+
+      <!-- Row for Loan Amount and Offer Date -->
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Loan Amount (Figure):</label>
+          <input type="text" id="amountFigure" class="form-control" placeholder="4,945,240.40">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Loan Amount (Words):</label>
+          <input type="text" id="amountWords" class="form-control" placeholder="Four Million, Nine Hundred and Forty Five Thousand...">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Offer Date:</label>
+          <input type="text" id="offerDate" class="form-control" placeholder="30th April, 2025">
+        </div>
+      </div>
+
+      <!-- Row for Loan Type, Business Type, and Letter Type -->
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Loan Type:</label>
+          <select id="loanType" class="form-control">
+            <option value="Working Capital Loan">Working Capital Loan</option>
+            <option value="Term Loan">Term Loan</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Business Type:</label>
+          <input type="text" id="businessType" class="form-control" placeholder="Mobile phones and accessories trading">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Letter Type:</label>
+          <select id="template" class="form-control">
+            <option value="specimen">Specimen Signature</option>
+            <option value="acceptance">Letter of Acceptance</option>
+            <option value="gsi">GSI Mandate</option>
+            <option value="indemnity">Letter of Indemnity</option>
+            <option value="authorization">Letter of Authorization</option>
+            <option value="application">Application for a Working Capital Loan</option>
+            <option value="undertaking">Letter of Undertaking</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Row for Address Inputs (House No., Estate, City) -->
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label class="form-label">House No.:</label>
+          <input type="text" id="houseNo" class="form-control" placeholder="3007">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Estate:</label>
+          <input type="text" id="estate" class="form-control" placeholder="777 Housing Estate">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">City:</label>
+          <input type="text" id="city" class="form-control" placeholder="Maiduguri">
+        </div>
+      </div>
+
+      <!-- Row for Address Inputs (State, Country) and Letterhead -->
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label class="form-label">State:</label>
+          <input type="text" id="state" class="form-control" placeholder="Borno State">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Country:</label>
+          <input type="text" id="country" class="form-control" placeholder="Nigeria">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Letterhead Image:</label>
+          <input type="file" id="letterhead" class="form-control" accept="image/png,image/jpeg">
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="d-flex justify-content-between mt-4">
+        <button onclick="generateLetter()" class="btn btn-primary btn-generate">Generate Letter</button>
+        <button onclick="downloadDocx()" class="btn btn-success btn-generate">Download as DOCX</button>
+        <button onclick="downloadPdf()" class="btn btn-success">Download as PDF</button>
+      </div>
+    </div>
+
+    <!-- Preview container for letter output -->
+    <div class="preview-container">
+      <div id="letterPreview"></div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize docx.js components for DOCX generation
+    const { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, UnderlineType } = docx;
+
+    // Variable to store letterhead image URL
+    let letterheadUrl = null;
+
+    // Function to generate dynamic date with correct suffix
+    function getCurrentDate() {
+      const months = ["January", "February", "March", "April", "May", "June", 
+                     "July", "August", "September", "October", "November", "December"];
+      const date = new Date();
+      const day = date.getDate();
+      let suffix = 'th';
+      if (day === 1 || day === 21 || day === 31) suffix = 'st';
+      else if (day === 2 || day === 22) suffix = 'nd';
+      else if (day === 3 || day === 23) suffix = 'rd';
+      return `${day}${suffix} ${months[date.getMonth()]}, ${date.getFullYear()}`;
+    }
+
+    // Handle letterhead upload
+    document.getElementById("letterhead").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        // Basic validation: check file type and size
+        const validTypes = ['image/png', 'image/jpeg'];
+        if (!validTypes.includes(file.type)) {
+          alert("Please upload a PNG or JPEG image.");
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          alert("Image size must be less than 5MB.");
+          return;
+        }
+        letterheadUrl = URL.createObjectURL(file);
+      } else {
+        letterheadUrl = null;
+      }
+    });
+
+    // Function to generate letter preview
+    function generateLetter() {
+      // Collect form inputs
+      const name = document.getElementById("fullName").value.trim();
+      const company = document.getElementById("company").value.trim();
+      const amountFigure = document.getElementById("amountFigure").value.trim();
+      const amountWords = document.getElementById("amountWords").value.trim();
+      const offerDate = document.getElementById("offerDate").value.trim();
+      const template = document.getElementById("template").value;
+      const loanType = document.getElementById("loanType").value;
+      const businessType = document.getElementById("businessType").value.trim();
+      const houseNo = document.getElementById("houseNo").value.trim();
+      const estate = document.getElementById("estate").value.trim();
+      const city = document.getElementById("city").value.trim();
+      const state = document.getElementById("state").value.trim();
+      const country = document.getElementById("country").value.trim();
+      
+      // Use fixed date for Application letter, dynamic for others
+      const currentDate = template === 'application' ? '28th June, 2024' : getCurrentDate();
+
+      // Validate required fields
+      if (!name || !company) {
+        alert("Please fill in all required fields.");
+        return;
+      }
+
+      // Construct address string for Letter of Indemnity
+      const address = [houseNo, estate, city, state, country].filter(Boolean).join(", ");
+
+      // Base letter content with letterhead and recipient address
+      let letterContent = `
+        <div style="font-family: 'Times New Roman'; font-size: 12pt; line-height: 1;">
+          ${letterheadUrl ? `<img src="${letterheadUrl}" class="letterhead">` : ''}
+          <p class="text-right">${currentDate}</p>
+          <p>The Managing Director,<br>
+          Bank of Industry Limited,<br>
+          23, Marina,<br>
+          P.O. Box 2357,<br>
+          Lagos.</p>
+          
+          <p>Dear Sir,</p>
+      `;
+
+      // Template-specific content
+      if (template === 'specimen') {
+        letterContent += `
+          <p class="text-center text-bold text-underline">SPECIMEN SIGNATURE</p>
+          
+          <p>Kindly take this instruction as authority to introduce the below person as the sole Signatory for the account of <span class="text-bold">${company}</span></p>
+          
+          <div>
+            <div class="signature-line"></div>
+            <p style="margin-bottom: 8mm;"></p>
+            <p class="text-bold">${name.toUpperCase()}</p>
+          </div>
+          
+          <p>Yours faithfully,</p>
+          <p class="text-bold">For: ${company}</p>
+          <div>
+            <div class="signature-line"></div>
+            <p style="margin-bottom: 8mm;"></p>
+            <p class="text-bold">${name.toUpperCase()}</p>
+            <p class="text-bold">CHIEF PROMOTER</p>
+          </div>
+        `;
+      } else if (template === 'acceptance') {
+        letterContent += `
+          <p class="text-center text-bold text-underline">LETTER OF ACCEPTANCE OF ${loanType.toUpperCase()}</p>
+          
+          <p>I unconditionally accept from your Bank of Industry Limited (BOI) ${loanType} in the sum of <span class="text-bold">₦${amountFigure} (${amountWords})</span> with all the terms and conditions contained in the Letter of Offer dated ${offerDate}.</p>
+          
+          <p>Thank you.</p>
+          
+          <p>Yours Faithfully,</p>
+          <p class="text-bold">For: ${company}</p>
+          <div>
+            <div class="signature-line"></div>
+            <p style="margin-bottom: 8mm;"></p>
+            <p class="text-bold">${name.toUpperCase()}</p>
+            <p class="text-bold">CHIEF PROMOTER</p>
+          </div>
+        `;
+      } else if (template === 'gsi') {
+        letterContent += `
+          <p class="text-center text-bold text-underline">RE: ${loanType.toUpperCase()} OF ₦${amountFigure} (${amountWords.toUpperCase()}) GLOBAL STANDING INSTRUCTIONS (GSI) MANDATE</p>
+          
+          <p>I write with reference to Bank of Industry Limited (BOI)'s offer of the subject loan; the terms of which were detailed in the letter of offer dated ${offerDate}.</p>
+          
+          <p><span class="text-bold">I HEREBY</span> voluntarily, unreservedly, irrevocably and unconditionally <span class="text-bold">authorize</span> Bank of Industry Limited, in the event of any default or continuing default on my part in the repayment of the subject loan or any instalment thereof as well as accrued interest thereon, as and when such payment becomes due, to, without notice to me (any such notice being expressly waived by me), set-off my indebtedness from any money or financial assets standing to my credit in any bank account and from any other financial assets held for my benefit by or retained in the custody of any financial institution on my behalf; further to which I hereby expressly issue this Global Standing Instruction Mandate to ANY and ALL financial institutions which is a party to the GSI scheme now or hereafter, to accord BOI all requisite assistance, accommodations and cooperation without reservation, as may give effect to the intendment of this instruction.</p>
+          
+          <p>I further confirm that this GSI Mandate is irrevocable and shall remain in full force throughout the duration of the subject loan or until I have successfully discharged all repayment obligations arising thereunder, as confirmed in writing by BOI and shall further operate without prejudice to any other legal options BOI may seek to explore in its ultimate prerogative towards recovery of any outstanding portion of the loan.</p>
+          
+          <p>I hereby confirm and reiterate my full understanding and acceptance of the legal implications of the foregoing Global Standing Instructions Mandate (the GSI Mandate), the contents of which have also been explained in detail and in the simplest language to me by my solicitor. I therefore, affirm that the foregoing mandate is given in favour of BOI with my full understanding, in utmost good faith, without duress and with the full intention of fulfilling my contractual obligations, further to which I agree to indemnify BOI against any claim arising as a direct result of its acting in line with the GSI Mandate hereby given in the event of any repayment default on my part.</p>
+          
+          <p>Thank you.</p>
+          
+          <p>Yours faithfully,</p>
+          <p class="text-bold">For: ${company}</p>
+          <div>
+            <div class="signature-line"></div>
+            <p style="margin-bottom: 8mm;"></p>
+            <p class="text-bold">${name.toUpperCase()}</p>
+            <p class="text-bold">CHIEF PROMOTER</p>
+          </div>
+        `;
+      } else if (template === 'indemnity') {
+        letterContent += `
+          <p class="text-center text-bold text-underline">LETTER OF INDEMNITY</p>
+          
+          <p>This INDEMNITY is given this ${currentDate} by ${name} doing business as ${company}, a registered business name and having its registered office at ${address || 'House No. 3007, 777 Housing Estate, Maiduguri, Borno State, Nigeria'} (hereinafter referred to as "the Customer" which expression shall where the context so admits include his/her heirs, personal representatives and assigns) to BANK OF INDUSTRY LIMITED (hereinafter referred to as "BOI" which expression shall unless contrary to the context or meaning thereof include its successors and assigns).</p>
+          
+          <p><span class="text-bold">WHEREAS,</span></p>
+          
+          <p>1. By an offer letter dated ${offerDate} BOI approved a ${loanType} of <span class="text-bold">₦${amountFigure} (${amountWords})</span> for your ${businessType || 'business operations'} as well as capitalization of insurance premium covering the facility tenor. (hereinafter referred to as "the Facility").</p>
+          
+          <p>2. The Customer is requesting that the Facility be disbursed to his/her supplier(s) for the purchase of the items BOI is financing, without the submission of Performance Bonds/Guarantees or Insurance Bonds by the supplier(s).</p>
+          
+          <p><span class="text-bold">NOW IN CONSIDERATION</span> of BOI disbursing the Facility to the supplier(s), without the submission of a Performance Bonds/Guarantees or Insurance Bonds by the supplier(s), I, ${name} doing business as ${company} hereby hold harmless BOI for any loss I may suffer and unconditionally and irrevocably indemnify and keep indemnified BOI against all losses, damages, liabilities, claims, suits, fines, charges, expenses, costs (including attorney fees and expenses) whatsoever, which BOI may incur or suffer or which may be brought against BOI by any person as a result of the disbursement the Facility to the supplier(s).</p>
+          
+          <p>In furtherance of the above, BOI may at any time during the continuance of this indemnity and without recourse to me deduct from and set off against my account any amount of any loss, damage, liability, claim, suit, fine, charge, expenses, costs (including attorney fees and expenses) whatsoever, which BOI may incur or suffer or which may be brought against BOI by any person as a result of the disbursement of the Facility to the supplier(s).</p>
+          
+          <p>This Indemnity is continuing and shall inure until it is discharged by BOI.</p>
+          
+          <p>This Indemnity shall be governed by and construed in accordance with the laws of the Federal Republic of Nigeria.</p>
+          
+          <p>Dated this ${currentDate}</p>
+          
+          <p>SIGNED, SEALED and DELIVERED by the within-named "CUSTOMER",</p>
+          
+          <div>
+            <div class="signature-line"></div>
+            <p style="margin-bottom: 8mm;"></p>
+            <p class="text-bold">${name.toUpperCase()}</p>
+            <p class="text-bold">${company} DOING BUSINESS AS</p>
+          </div>
+          
+          <p>In the presence of:</p>
+          <p>Name: ____________________</p>
+          <p>Address: ____________________</p>
+          <p>Occupation: ____________________</p>
+          <p>Signature: ____________________</p>
+        `;
+      } else if (template === 'authorization') {
+        letterContent += `
+          <p class="text-center text-bold text-underline">LETTER OF AUTHORIZATION</p>
+          
+          <p>I hereby authorize Bank of Industry (BOI) to obtain and retain on the Central Bank of Nigeria (CBN) Credit Risk Management System (CRMS) and other licensed credit reference agencies, any Tax Identification Number (TIN) and Bank Verification Number (BVN) related information with respect to myself and my company.</p>
+          
+          <p>Yours Faithfully,</p>
+          <p class="text-bold">For: ${company}</p>
+          <div>
+            <div class="signature-line"></div>
+            <p style="margin-bottom: 8mm;"></p>
+            <p class="text-bold">${name.toUpperCase()}</p>
+            <p class="text-bold">CHIEF PROMOTER</p>
+          </div>
+        `;
+      } else if (template === 'application') {
+        letterContent += `
+          <p class="text-center text-bold text-underline">APPLICATION FOR A ${loanType.toUpperCase()} OF ₦${amountFigure}</p>
+          
+          <p>I am writing to formally convey my desire to obtain a ${loanType} of <span class="text-bold">₦${amountFigure} (${amountWords})</span> from your esteemed institution, the Bank of Industry Ltd. This funding will be used judiciously to finance my ${businessType || 'business operations'} in Maiduguri, Borno State.</p>
+          
+          <p>Please find all the necessary documents forwarded to enable you to appraise our request.</p>
+          
+          <p>We look forward to your response soonest.</p>
+          
+          <p>Yours Faithfully,</p>
+          <p class="text-bold">For: ${company}</p>
+          <div>
+            <div class="signature-line"></div>
+            <p style="margin-bottom: 8mm;"></p>
+            <p class="text-bold">${name.toUpperCase()}</p>
+            <p class="text-bold">CHIEF PROMOTER</p>
+          </div>
+        `;
+      } else if (template === 'undertaking') {
+        letterContent += `
+          <p class="text-center text-bold text-underline">LETTER OF UNDERTAKING TO PAY THE INTEREST DUE DURING THE MORATORIUM PERIOD IN RESPECT OF THE ${loanType.toUpperCase()} OF ₦${amountFigure} (${amountWords.toUpperCase()}) UNDER THE FGN MSME INTERVENTION FUND</p>
+          
+          <p>I the undersigned is chief promoter of ${company} to pay the monthly interest due during the moratorium period unfailingly.</p>
+          
+          <p>Yours Faithfully,</p>
+          <p class="text-bold">For: ${company}</p>
+          <div>
+            <div class="signature-line"></div>
+            <p style="margin-bottom: 8mm;"></p>
+            <p class="text-bold">${name.toUpperCase()}</p>
+            <p class="text-bold">CHIEF PROMOTER</p>
+          </div>
+        `;
+      }
+
+      letterContent += `</div>`;
+      // Update preview area with generated content
+      document.getElementById("letterPreview").innerHTML = letterContent;
+    }
+
+    // Function to generate and download DOCX
+    async function downloadDocx() {
+      // Collect form inputs
+      const name = document.getElementById("fullName").value.trim();
+      const company = document.getElementById("company").value.trim();
+      const amountFigure = document.getElementById("amountFigure").value.trim();
+      const amountWords = document.getElementById("amountWords").value.trim();
+      const offerDate = document.getElementById("offerDate").value.trim();
+      const template = document.getElementById("template").value;
+      const loanType = document.getElementById("loanType").value;
+      const businessType = document.getElementById("businessType").value.trim();
+      const houseNo = document.getElementById("houseNo").value.trim();
+      const estate = document.getElementById("estate").value.trim();
+      const city = document.getElementById("city").value.trim();
+      const state = document.getElementById("state").value.trim();
+      const country = document.getElementById("country").value.trim();
+      
+      // Validate required fields
+      if (!name || !company) {
+        alert("Please generate the letter first.");
+        return;
+      }
+
+      // Use fixed date for Application letter, dynamic for others
+      const currentDate = template === 'application' ? '28th June, 2024' : getCurrentDate();
+      
+      // Construct address string for Letter of Indemnity
+      const address = [houseNo, estate, city, state, country].filter(Boolean).join(", ");
+      
+      // Initialize document content array
+      const docChildren = [];
+      
+      // Add date paragraph
+      docChildren.push(
+        new Paragraph({
+          text: currentDate,
+          alignment: AlignmentType.RIGHT,
+          spacing: { after: 200, line: 240 }
+        })
+      );
+      
+      // Add recipient address paragraphs
+      docChildren.push(
+        new Paragraph({
+          text: "The Managing Director,",
+          spacing: { after: 0, line: 240 }
+        }),
+        new Paragraph({
+          text: "Bank of Industry Limited,",
+          spacing: { after: 0, line: 240 }
+        }),
+        new Paragraph({
+          text: "23, Marina,",
+          spacing: { after: 0, line: 240 }
+        }),
+        new Paragraph({
+          text: "P.O. Box 2357,",
+          spacing: { after: 0, line: 240 }
+        }),
+        new Paragraph({
+          text: "Lagos.",
+          spacing: { after: 400, line: 240 }
+        }),
+        new Paragraph({
+          text: "Dear Sir,",
+          spacing: { after: 400, line: 240 }
+        })
+      );
+      
+      // Add template-specific content
+      if (template === 'specimen') {
+        docChildren.push(
+          new Paragraph({
+            text: "SPECIMEN SIGNATURE",
+            heading: HeadingLevel.HEADING_3,
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: `Kindly take this instruction as authority to introduce the below person as the sole Signatory for the account of ${company}`,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "...................................",
+                underline: {}
+              })
+            ],
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: name.toUpperCase(),
+            bold: true,
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 800, line: 240 }
+          }),
+          new Paragraph({
+            text: "Yours faithfully,",
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            text: `For: ${company}`,
+            bold: true,
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "...................................",
+                underline: {}
+              })
+            ],
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: name.toUpperCase(),
+            bold: true,
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 0, line: 240 }
+          }),
+          new Paragraph({
+            text: "CHIEF PROMOTER",
+            bold: true,
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 400, line: 240 }
+          })
+        );
+      } else if (template === 'acceptance') {
+        docChildren.push(
+          new Paragraph({
+            text: `LETTER OF ACCEPTANCE OF ${loanType.toUpperCase()}`,
+            heading: HeadingLevel.HEADING_3,
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: `I unconditionally accept from your Bank of Industry Limited (BOI) ${loanType} in the sum of ₦${amountFigure} (${amountWords}) with all the terms and conditions contained in the Letter of Offer dated ${offerDate}.`,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: "Thank you.",
+            spacing: { after: 800, line: 240 }
+          }),
+          new Paragraph({
+            text: "Yours Faithfully,",
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            text: `For: ${company}`,
+            bold: true,
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "...................................",
+                underline: {}
+              })
+            ],
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: name.toUpperCase(),
+            bold: true,
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 0, line: 240 }
+          }),
+          new Paragraph({
+            text: "CHIEF PROMOTER",
+            bold: true,
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 400, line: 240 }
+          })
+        );
+      } else if (template === 'gsi') {
+        docChildren.push(
+          new Paragraph({
+            text: `RE: ${loanType.toUpperCase()} OF ₦${amountFigure} (${amountWords.toUpperCase()}) GLOBAL STANDING INSTRUCTIONS (GSI) MANDATE`,
+            heading: HeadingLevel.HEADING_3,
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: `I write with reference to Bank of Industry Limited (BOI)'s offer of the subject loan; the terms of which were detailed in the letter of offer dated ${offerDate}.`,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            children: [
+              new TextRun("I HEREBY "),
+              new TextRun({
+                text: "voluntarily, unreservedly, irrevocably and unconditionally ",
+              }),
+              new TextRun({
+                text: "authorize ",
+                bold: true
+              }),
+              new TextRun("Bank of Industry Limited, in the event of any default or continuing default on my part in the repayment of the subject loan or any instalment thereof as well as accrued interest thereon, as and when such payment becomes due, to, without notice to me (any such notice being expressly waived by me), set-off my indebtedness from any money or financial assets standing to my credit in any bank account and from any other financial assets held for my benefit by or retained in the custody of any financial institution on my behalf; further to which I hereby expressly issue this Global Standing Instruction Mandate to ANY and ALL financial institutions which is a party to the GSI scheme now or hereafter, to accord BOI all requisite assistance, accommodations and cooperation without reservation, as may give effect to the intendment of this instruction.")
+            ],
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: "I further confirm that this GSI Mandate is irrevocable and shall remain in full force throughout the duration of the subject loan or until I have successfully discharged all repayment obligations arising thereunder, as confirmed in writing by BOI and shall further operate without prejudice to any other legal options BOI may seek to explore in its ultimate prerogative towards recovery of any outstanding portion of the loan.",
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: "I hereby confirm and reiterate my full understanding and acceptance of the legal implications of the foregoing Global Standing Instructions Mandate (the GSI Mandate), the contents of which have also been explained in detail and in the simplest language to me by my solicitor. I therefore, affirm that the foregoing mandate is given in favour of BOI with my full understanding, in utmost good faith, without duress and with the full intention of fulfilling my contractual obligations, further to which I agree to indemnify BOI against any claim arising as a direct result of its acting in line with the GSI Mandate hereby given in the event of any repayment default on my part.",
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: "Thank you.",
+            spacing: { after: 800, line: 240 }
+          }),
+          new Paragraph({
+            text: "Yours faithfully,",
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            text: `For: ${company}`,
+            bold: true,
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "...................................",
+                underline: {}
+              })
+            ],
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: name.toUpperCase(),
+            bold: true,
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 0, line: 240 }
+          }),
+          new Paragraph({
+            text: "CHIEF PROMOTER",
+            bold: true,
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 400, line: 240 }
+          })
+        );
+      } else if (template === 'indemnity') {
+        docChildren.push(
+          new Paragraph({
+            text: "LETTER OF INDEMNITY",
+            heading: HeadingLevel.HEADING_3,
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: `This INDEMNITY is given this ${currentDate} by ${name} doing business as ${company}, a registered business name and having its registered office at ${address || 'House No. 3007, 777 Housing Estate, Maiduguri, Borno State, Nigeria'} (hereinafter referred to as "the Customer" which expression shall where the context so admits include his/her heirs, personal representatives and assigns) to BANK OF INDUSTRY LIMITED (hereinafter referred to as "BOI" which expression shall unless contrary to the context or meaning thereof include its successors and assigns).`,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: "WHEREAS,",
+            bold: true,
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            text: `1. By an offer letter dated ${offerDate} BOI approved a ${loanType} of ₦${amountFigure} (${amountWords}) for your ${businessType || 'business operations'} as well as capitalization of insurance premium covering the facility tenor. (hereinafter referred to as "the Facility").`,
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            text: "2. The Customer is requesting that the Facility be disbursed to his/her supplier(s) for the purchase of the items BOI is financing, without the submission of Performance Bonds/Guarantees or Insurance Bonds by the supplier(s).",
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: "NOW IN CONSIDERATION",
+            bold: true,
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            text: `of BOI disbursing the Facility to the supplier(s), without the submission of a Performance Bonds/Guarantees or Insurance Bonds by the supplier(s), I, ${name} doing business as ${company} hereby hold harmless BOI for any loss I may suffer and unconditionally and irrevocably indemnify and keep indemnified BOI against all losses, damages, liabilities, claims, suits, fines, charges, expenses, costs (including attorney fees and expenses) whatsoever, which BOI may incur or suffer or which may be brought against BOI by any person as a result of the disbursement the Facility to the supplier(s).`,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: "In furtherance of the above, BOI may at any time during the continuance of this indemnity and without recourse to me deduct from and set off against my account any amount of any loss, damage, liability, claim, suit, fine, charge, expenses, costs (including attorney fees and expenses) whatsoever, which BOI may incur or suffer or which may be brought against BOI by any person as a result of the disbursement of the Facility to the supplier(s).",
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: "This Indemnity is continuing and shall inure until it is discharged by BOI.",
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: "This Indemnity shall be governed by and construed in accordance with the laws of the Federal Republic of Nigeria.",
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: `Dated this ${currentDate}`,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: `SIGNED, SEALED and DELIVERED by the within-named "CUSTOMER",`,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "...................................",
+                underline: {}
+              })
+            ],
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: name.toUpperCase(),
+            bold: true,
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 0, line: 240 }
+          }),
+          new Paragraph({
+            text: `${company} DOING BUSINESS AS`,
+            bold: true,
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: "In the presence of:",
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            text: "Name: ____________________",
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            text: "Address: ____________________",
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            text: "Occupation: ____________________",
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            text: "Signature: ____________________",
+            spacing: { after: 400, line: 240 }
+          })
+        );
+      } else if (template === 'authorization') {
+        docChildren.push(
+          new Paragraph({
+            text: "LETTER OF AUTHORIZATION",
+            heading: HeadingLevel.HEADING_3,
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: "I hereby authorize Bank of Industry (BOI) to obtain and retain on the Central Bank of Nigeria (CBN) Credit Risk Management System (CRMS) and other licensed credit reference agencies, any Tax Identification Number (TIN) and Bank Verification Number (BVN) related information with respect to myself and my company.",
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: "Yours Faithfully,",
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            text: `For: ${company}`,
+            bold: true,
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "...................................",
+                underline: {}
+              })
+            ],
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: name.toUpperCase(),
+            bold: true,
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 0, line: 240 }
+          }),
+          new Paragraph({
+            text: "CHIEF PROMOTER",
+            bold: true,
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 400, line: 240 }
+          })
+        );
+      } else if (template === 'application') {
+        docChildren.push(
+          new Paragraph({
+            text: `APPLICATION FOR A ${loanType.toUpperCase()} OF ₦${amountFigure}`,
+            heading: HeadingLevel.HEADING_3,
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: `I am writing to formally convey my desire to obtain a ${loanType} of ₦${amountFigure} (${amountWords}) from your esteemed institution, the Bank of Industry Ltd. This funding will be used judiciously to finance my ${businessType || 'business operations'} in Maiduguri, Borno State.`,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: "Please find all the necessary documents forwarded to enable you to appraise our request.",
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: "We look forward to your response soonest.",
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: "Yours Faithfully,",
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            text: `For: ${company}`,
+            bold: true,
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "...................................",
+                underline: {}
+              })
+            ],
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: name.toUpperCase(),
+            bold: true,
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 0, line: 240 }
+          }),
+          new Paragraph({
+            text: "CHIEF PROMOTER",
+            bold: true,
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 400, line: 240 }
+          })
+        );
+      } else if (template === 'undertaking') {
+        docChildren.push(
+          new Paragraph({
+            text: `LETTER OF UNDERTAKING TO PAY THE INTEREST DUE DURING THE MORATORIUM PERIOD IN RESPECT OF THE ${loanType.toUpperCase()} OF ₦${amountFigure} (${amountWords.toUpperCase()}) UNDER THE FGN MSME INTERVENTION FUND`,
+            heading: HeadingLevel.HEADING_3,
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: `I the undersigned is chief promoter of ${company} to pay the monthly interest due during the moratorium period unfailingly.`,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: "Yours Faithfully,",
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            text: `For: ${company}`,
+            bold: true,
+            spacing: { after: 200, line: 240 }
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "...................................",
+                underline: {}
+              })
+            ],
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 400, line: 240 }
+          }),
+          new Paragraph({
+            text: name.toUpperCase(),
+            bold: true,
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 0, line: 240 }
+          }),
+          new Paragraph({
+            text: "CHIEF PROMOTER",
+            bold: true,
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 400, line: 240 }
+          })
+        );
+      }
+      
+      // Create DOCX document with A4 size and margins
+      const doc = new Document({
+        sections: [{
+          properties: {
+            page: {
+              size: {
+                width: 210 * 20,  // A4 width in twips
+                height: 297 * 20, // A4 height in twips
+              },
+              margin: {
+                top: 1440,       // 1 inch in twips
+                right: 1440,
+                bottom: 1440,
+                left: 1440,
+              }
+            }
+          },
+          children: docChildren
+        }]
+      });
+      
+      // Generate and download DOCX file
+      const buffer = await docx.Packer.toBlob(doc);
+      saveAs(buffer, `${template}_${name.replace(/\s+/g, "_")}.docx`);
+    }
+
+    // Function to generate and download PDF
+    function downloadPdf() {
+      const name = document.getElementById("fullName").value.trim();
+      const template = document.getElementById("template").value;
+      if (!name) {
+        alert("Please enter a full name and generate the letter first.");
+        return;
+      }
+
+      const element = document.getElementById("letterPreview");
+      const opt = {
+        margin: [20, 20, 20, 20], // 20mm margins
+        filename: `${template}_${name.replace(/\s+/g, "_")}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      // Generate and download PDF
+      html2pdf().set(opt).from(element).save().catch(err => {
+        alert("Failed to generate PDF: " + err.message);
+      });
+    }
+
+    // Initialize form with sample data
+    window.onload = function() {
+      document.getElementById("fullName").value = "Mohammed Algoni";
+      document.getElementById("company").value = "ABBA BAMA GLOBAL TRADING VENTURES";
+      document.getElementById("amountFigure").value = "4,945,240.40";
+      document.getElementById("amountWords").value = "Four Million, Nine Hundred and Forty Five Thousand, Two Hundred and Forty Naira, Forty Kobo Only";
+      document.getElementById("offerDate").value = "30th April, 2025";
+      document.getElementById("businessType").value = "Mobile phones and accessories trading";
+      document.getElementById("houseNo").value = "3007";
+      document.getElementById("estate").value = "777 Housing Estate";
+      document.getElementById("city").value = "Maiduguri";
+      document.getElementById("state").value = "Borno State";
+      document.getElementById("country").value = "Nigeria";
+      generateLetter();
+    };
+  </script>
+</body>
+</html>
